@@ -1,0 +1,239 @@
+body {
+    font-family: 'Segoe UI';
+    background-color: #1E1F21;
+    color: #FFFFFF;
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    font-size: 1rem;
+}
+
+h1 {
+    font-weight: 400;
+}
+
+img {
+    border-radius: 8px;
+}
+
+a {
+    text-decoration: none;
+    color: #d5e7d2;
+    font-size: 25px;
+    transition: transform 0.3s ease-out; 
+}
+
+a:hover {
+    transform: translateY(-8px); 
+}
+
+.container {
+    margin: 0;
+}
+
+.content {
+    margin-top: 135px;
+    margin-left: 50px;
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+.navbar {
+    background: #121212;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;   
+    display: flex;
+    align-items: center;    
+    padding: 15px 17px; 
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.log-out {
+    margin-left: auto;
+    display: inline-block;
+    transition: transform 0.3s ease; 
+    background: #DC2626;
+    color: white;
+    padding: 5px 10px 5px 10px;
+    font-size: 23px;
+    border-radius: 8px;
+    border: 2px solid #551c1c;
+}
+
+.log-out:hover {
+    background: #B91C1C;
+    cursor: pointer;
+    border: 2px solid #411919;
+    transform: translateY(-3px);
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #FFFFFF;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #3B3B3B;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 8px rgba(102, 126, 234, 0.5);
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #737475;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #676c6e, #464343);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.core-traits {
+    background-color: #282828;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 460px;
+}
+
+.personality {
+    background-color: #282828;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 460px;
+    max-height: 500px;
+}
+
+.personality button {
+    background-color: #302f2f;
+}
+
+.personality h2 {
+    font-size: 26px;
+    font-weight: 500;
+}
+
+.personality-div {
+    padding: 20px;
+    font-size: 17px;
+    border-radius: 8px;
+    max-width: 460px;
+    min-height: 180px;
+    background-color: #353434;
+}
+
+.chat-history-div {
+    background-color: #353434;
+    padding: 20px;
+    border-radius: 8px;
+    width: 200px;
+}
+
+.chat-history-div h2 {
+    font-size: 25px;
+    font-weight: 400;
+}
+
+.chat-history {
+    background-color: #3e3d3d;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.chat-history button {
+    background-color: transparent;
+    text-align: start;
+}
+
+.reflect-comp {
+    background-color: #282828;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 300px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+}
+
+.reflect-comp h2 {
+    font-size: 26px;
+    font-weight: 500;
+}
+
+.reflect-comp-div {
+    padding: 20px;
+    font-size: 17px;
+    border-radius: 8px;
+    width: 470px;
+    min-height: 200px;
+    height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    line-height: 1.5;
+    background-color: #353434;
+}
+
+.reflect-comp input {
+    color: #FFFFFF;
+    width: 360px;
+    margin-top: auto;
+}
+
+.reflect-comp-div table {
+    border: 1px solid #000000;
+}
+
+.reflect-comp-div th {
+    border: 1px solid #000000;
+}
+
+.reflect-comp-div td {
+    border: 1px solid #000000;
+}
+
+.reflect-comp-div tr {
+    border: 1px solid #000000;
+}
+
+.logout {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: crimson;
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.logout:hover {
+    background: darkred;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
