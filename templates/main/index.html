@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reflect AI - Diary</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    </head>
+    <body>
+        <div class="container">
+            <div class="navbar">
+                <img src="{{url_for('static', filename='assets/logo.png')}}" alt="reflect ai logo" height="60" width="60" style="padding: 5px; margin-right: 65px;">
+                <a href="/" style="margin-right: 40px;">Diary Entries</a>
+                <a href="/chatbot" style="margin-right: 40px;">Chatbot</a>
+                <a class="log-out" id="log-out">LOG OUT</a>
+            </div>
+            <div class="content">
+                <h1 id="welcome-msg">Welcome back!!</h1>
+                <br>
+                <br>
+                <div class="entry-container" id="entry-container">
+                    <div class="entries" id="add-entries" style="font-size: 120px; font-weight: 100; background-color: #3f3d3d; display: flex; justify-content: center; align-items: center;">
+                        +
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="entry-editor" id="entry-editor">
+                <button class="close-editor" id="close-editor">x</button>
+                <textarea placeholder="Title" id="title-editor" name="content" maxlength="50" class="entry-editor-title" id="entry-editor-title"></textarea>
+                <br>
+                <br>
+                <textarea placeholder="Content..." id="content-editor" name="content" maxlength="3000" class="entry-editor-content" id="entry-editor-content"></textarea>
+                <br>
+                <button class="create-editor" id="create-editor">Create</button>
+            </div>
+            <div class="entry-viewer" id="entry-viewer">
+                <button class="close-editor" id="close-editor-view">x</button>
+                <h2 class="viewer-title" id="viewer-title"></h2>
+                <p class="viewer-content" id="viewer-content"></p>
+                <p class="viewer-date" id="viewer-date"></p>
+            </div>
+        </div>
+        <script src="{{url_for('static', filename='scripts/main/index.js')}}"></script>
+    </body>
+</html>
