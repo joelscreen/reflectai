@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reflect AI - Login</title>
+        <link rel="stylesheet" href="{{url_for('static', filename='login-styles.css')}}">
+    </head>
+    <body>
+        <div class="container">
+            <h2 style="text-align: center;">Login to Reflect AI!</h2>
+            <input id="loginid" type="text" name="loginid" placeholder="Login ID" required>
+            <input id="password" type="password" name="password" placeholder="Password" required>
+            <button type="submit" id="submit">Login</button>
+            <br>
+            <br>
+            <span style="text-align: center; display: block;">Don't have an account yet? <a href="/register">Register Now!!</a></span>
+        </div>
+        <script src="{{url_for('static', filename='scripts/login/login.js')}}"></script>
+    </body>
+</html>
