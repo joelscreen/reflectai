@@ -6,7 +6,7 @@ import
 
 app = Flask(__name__)
 
-client = Groq(api_key=os.getenv("GROK_API_KEY"))
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 supabase: Client = create_client("https://mndroclcanzxyrntbuzp.supabase.co",
                                  os.getenv("SUPABASE_KEY"))
