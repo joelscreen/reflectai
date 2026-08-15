@@ -9,7 +9,9 @@ const password = document.getElementById("password");
 const submit = document.getElementById("submit");
 
 submit.addEventListener('click', async function() {
-
+    if (loginid.value == "" || password.value == "") {
+        return;
+    }
     try {
         const response = await fetch("/check-user-login", {
             method: 'POST',
@@ -30,6 +32,10 @@ submit.addEventListener('click', async function() {
         password.value = "";
 
         const data = await response.json();
+
+        if (data.success == false) {
+            return;
+        }
 
         localStorage.setItem("session_token", data.session_token)
 
