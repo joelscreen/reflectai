@@ -1,11 +1,3 @@
-// Declare User Details
-const user_details = JSON.parse(localStorage.getItem("user_details"));
-
-// Redirect if not logged in
-if (localStorage.getItem("session_token") == null) {
-    window.location.href = "/login";
-}
-
 // Store User Details
 async function store_user_details() {
     const response = await fetch("/fetch-user-details", {
@@ -15,17 +7,38 @@ async function store_user_details() {
     });
 
     if (!response.ok) {
-        return;
+        return null;
     }
 
     const data = await response.json();
 
     localStorage.setItem("user_details", JSON.stringify(data));
+
+    return data;
 }
 
-store_user_details();
+// Initialize Page
+async function initialize() {
+    if (localStorage.getItem("session_token") == null) {
+        window.location.href = "/login";
+        return;
+    }
 
-document.getElementById("welcome-msg").textContent = `Welcome back, ${user_details.name}!!`
+    const user_details = await store_user_details();
+
+    if (!user_details) {
+        localStorage.clear();
+        window.location.href = "/login";
+        return;
+    }
+
+    document.getElementById("welcome-msg").textContent =
+        `Welcome back, ${user_details.name}!!`;
+
+    show_diary_entries();
+}
+
+initialize();
 
 // Log Out
 const log_out = document.getElementById("log-out");
@@ -37,7 +50,7 @@ log_out.addEventListener('click', async function() {
         }
     });
 
-    localStorage.removeItem("session_token");
+    localStorage.clear();
 
     window.location.href = "/login";
 })
