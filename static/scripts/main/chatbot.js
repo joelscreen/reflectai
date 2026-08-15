@@ -77,11 +77,53 @@ async function get_personality(new_report) {
 
 get_personality("false");
 
+// Advice
+const advice_p = document.getElementById("advice-p")
+
+async function get_advice(new_report) {
+    const e_response = await fetch("/fetch-diary-entry", {
+        method: "POST",
+        headers: {
+            "session-token": localStorage.getItem("session_token")
+        }
+    });
+    const e_data = await e_response.json();
+
+    if (!e_response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const response = await fetch("/advice", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            id: user_details.id,
+            name: user_details.name,
+            entries: e_data,
+            new_report: new_report
+        })
+    })
+    const data = await response.json()
+
+    advice_p.innerHTML = marked.parse(data.reply);
+}
+
+get_advice("false");
+
 // Generate new report
 const generate_new_report = document.getElementById("generate-new-report");
 
 generate_new_report.addEventListener("click", async function() {
     await get_personality("true");
+});
+
+// Generate new advice
+const generate_new_advice = document.getElementById("generate-new-advice");
+
+generate_new_advice.addEventListener("click", async function() {
+    await get_advice("true");
 });
 
 // Reflect Companion
@@ -253,4 +295,61 @@ const generate_new_list = document.getElementById("generate-new-list");
 
 generate_new_list.addEventListener("click", async function() {
     await get_core_traits("true");
+});
+
+// Strenghts and Weaknesses
+const strenghts_weaknesses_p = document.getElementById("strenghts-weaknesses")
+
+async function get_sw_traits(new_report) {
+    const e_response = await fetch("/fetch-diary-entry", {
+        method: "POST",
+        headers: {
+            "session-token": localStorage.getItem("session_token")
+        }
+    });
+    const e_data = await e_response.json();
+
+    if (!e_response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const h_response = await fetch("/get-chat-history", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user_details.id
+        })
+    });
+    const h_data = await h_response.json();
+
+    const response = await fetch("/strenghts-weaknesses", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            user_id: user_details.id,
+            name: user_details.name,
+            entries: e_data,
+            chat_history: h_data,
+            new_report: new_report
+        })
+    })
+    const data = await response.json()
+
+    strenghts_weaknesses_p.innerHTML = ""
+    strenghts_weaknesses_p.innerHTML += "<h2>Strenghts</h2>"
+    strenghts_weaknesses_p.innerHTML += marked.parse(data.strenghts);
+    strenghts_weaknesses_p.innerHTML += "<h2>Weaknesses</h2>"
+    strenghts_weaknesses_p.innerHTML += marked.parse(data.weaknesses);
+}
+
+get_sw_traits("false");
+
+const generate_new_list_sw = document.getElementById("generate-new-list-sw");
+
+generate_new_list_sw.addEventListener("click", async function() {
+    await get_sw_traits("true");
 });
