@@ -115,7 +115,7 @@ button:active {
     background-color: #282828;
     padding: 20px;
     border-radius: 8px;
-    min-width: 460px;
+    min-width: 500px;
 }
 
 .personality {
@@ -142,6 +142,27 @@ button:active {
     max-width: 460px;
     min-height: 180px;
     background-color: #353434;
+}
+
+.main-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    align-items: flex-start;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.advice-div {
+    padding: 20px;
+    font-size: 17px;
+    border-radius: 8px;
+    max-height: 320px;
+    max-width: 600px;
+    background-color: #353434;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .chat-history-div {
