@@ -2,15 +2,94 @@ from flask import Flask, render_template, request, jsonify
 from groq import Groq
 from supabase import Client, create_client
 import secrets
+import
 
 app = Flask(__name__)
 
-client = Groq(api_key="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")
+client = Groq(api_key=os.getenv("GROK_API_KEY"))
 
 supabase: Client = create_client("https://mndroclcanzxyrntbuzp.supabase.co",
-                                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1uZHJvY2xjYW56eHlybnRidXpwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTE0MDY0MSwiZXhwIjoyMTAwNzE2NjQxfQ.b01d8L2eSmzybtyTa089aMDHctHU5CTgSaPf8HF00Bk")
+                                 os.getenv("SUPABASE_KEY"))
 
-# Create a list of core traits that I have and rank them based on their percentage scores. Only send the core traits, nothing else. Show the ranking numbers before each trait
+def create_session(user_id):
+    token = secrets.token_hex(32)
+
+    supabase.table("session_tokens").insert({
+        "user_id": user_id,
+        "session_token": token
+    }).execute()
+
+    return token
+
+def get_user_from_session():
+    token = request.headers.get("session-token")
+
+    if not token:
+        return None
+
+    session = (
+        supabase
+        .table("session_tokens")
+        .select("user_id")
+        .eq("session_token", token)
+        .execute()
+    )
+
+    if len(session.data) == 0:
+        return None
+
+    user_id = session.data[0]["user_id"]
+
+    user = (
+        supabase
+        .table("Users")
+        .select("*")
+        .eq("id", user_id)
+        .execute()
+    )
+
+    if len(user.data) == 0:
+        return None
+
+    return user.data[0]
+
+@app.route('/register-user', methods=["POST"])
+def register_user():
+    data = request.get_json()
+
+    name = data["name"]
+    loginid = data["loginid"]
+    email = data["email"]
+    password = data["password"]
+
+    same_user = supabase.table("Users").select("*").or_(f"name.eq.{name},loginid.eq.{loginid},email.eq.{email},password.eq.{password}").execute()
+
+    if len(same_user.data) > 0:
+        return jsonify(success=False)
+
+    user_reg = supabase.table("Users").insert({
+        "name": name,
+        "loginid": loginid,
+        "password": password,
+        "email": email
+    }).execute()
+
+    user = supabase.table("Users").select("*").eq("loginid", loginid).execute()
+    
+    if len(user.data) == 0:
+        return jsonify(success=False)
+
+    user = user.data[0]
+
+    if user["password"] != password:
+        return jsonify(success=False)
+
+    token = create_session(user["id"])
+
+    return jsonify(
+        success=True,
+        session_token=token
+    )
 
 @app.route('/core-traits', methods=["POST"])
 def core_traits():
@@ -27,7 +106,6 @@ def core_traits():
                 You must refer the {name}'s diary to understand their personality.
                 The diary is in the JSON format, in order for you to know the date and time of entry too.
 
-                Chat History: {chat_history} (the HTML elements where the <p> elements have "margin-left: auto;" is by the user, and the rest is by you)
                 Diary: {entries}
                 """
 
@@ -43,7 +121,7 @@ def core_traits():
             model="openai/gpt-oss-20b",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Create a list of core traits that I have and rank them based on their percentage scores. Maximum 10 core traits. Only send the core traits with the percentage ranking, nothing else. Show the ranking numbers before each trait. If there are no entries, say 'No entries found'. The format for each core trait is 'Core Trait: percentage'."}
+                {"role": "user", "content": "Create a list of core traits that I have and rank them based on their percentage scores. Maximum 10 core traits. Only send the core traits with the percentage ranking, nothing else. Show the ranking numbers before each trait. If there are no entries, say 'No entries found'. The format for each core trait is 'The Core Trait name (here, include only the name of the core trait): percentage'."}
             ]
         )
 
@@ -51,7 +129,7 @@ def core_traits():
             model="openai/gpt-oss-20b",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": "Create a list of frequent emotions that I have and rank them based on their percentage scores. Maximum 10 frequent emotions Only send the frequent emotions with the percentage ranking, nothing else. Show the ranking numbers before each trait. If there are no entries, say 'No entries found'. The format for each core trait is 'Core Trait: percentage'."}
+                {"role": "user", "content": "Create a list of frequent emotions that I have and rank them based on their percentage scores. Maximum 10 frequent emotions Only send the frequent emotions with the percentage ranking, nothing else. Show the ranking numbers before each trait. If there are no entries, say 'No entries found'. The format for each frequent emotion is 'The Frequent Emotion name (here, include only the name of the emotion): percentage'."}
             ]
         )
     
@@ -76,6 +154,71 @@ def core_traits():
         return jsonify({
             "core_traits": f"Error: {str(e)}",
             "frequent_emotions": f"Error: {str(e)}"
+        })
+
+@app.route('/strenghts-weaknesses', methods=["POST"])
+def strenghts_weaknesses():
+    data = request.json
+    user_id = data.get("user_id","")
+    name = data.get("name", "")
+    entries = data.get("entries", "")
+    chat_history = data.get("chat_history", "")
+    new_report = data.get("new_report", "")
+
+    system_prompt = f"""
+                You are Reflect Companion, a helpful AI Assistant built by Joel Mendonca to help users solve their problems.
+                The user's name is {name}.
+                You must refer the {name}'s diary to understand their personality.
+                The diary is in the JSON format, in order for you to know the date and time of entry too.
+
+                Diary: {entries}
+                """
+
+    try:
+        user = supabase.table("strenghts_weaknesses").select("*").eq("user_id", user_id).execute()
+        if user.data != [] and new_report == "false":
+            return jsonify({
+                "strenghts": user.data[0]["strenghts"],
+                "weaknesses": user.data[0]["weaknesses"]
+            })
+    
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Create a list of strenghts that I have and rank them based on their percentage scores. Maximum 10 strenghts. Only send the strenghts with the percentage ranking, nothing else. Show the ranking numbers before each strenght. If there are no entries, say 'No entries found'. The format for each strenght is 'The Strenght name (here, include only the name of the strenght): percentage'."}
+            ]
+        )
+
+        emotion_response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Create a list of weaknesses that I have and rank them based on their percentage scores. Maximum 10 weaknesses. Only send the weaknesses with the percentage ranking, nothing else. Show the ranking numbers before each weaknesses. If there are no entries, say 'No entries found'. The format for each weakness is 'The Weakness name (here, include only the name of the weakness): percentage'."}
+            ]
+        )
+    
+        if new_report == "true":
+            user_sw = supabase.table("strenghts_weaknesses").update({
+                "strenghts": response.choices[0].message.content,
+                "weaknesses": emotion_response.choices[0].message.content
+            }).eq("user_id", user_id).execute()
+        elif new_report == "false":
+            user_sw = supabase.table("strenghts_weaknesses").insert({
+                "user_id": user_id,
+                "strenghts": response.choices[0].message.content,
+                "weaknesses": emotion_response.choices[0].message.content
+            }).execute()
+    
+        return jsonify({
+            "strenghts": response.choices[0].message.content,
+            "weaknesses": emotion_response.choices[0].message.content
+        })
+    
+    except Exception as e:
+        return jsonify({
+            "strenghts": f"Error: {str(e)}",
+            "weaknesses": f"Error: {str(e)}"
         })
 
 @app.route('/personality-check', methods=["POST"])
@@ -118,6 +261,57 @@ def personality_check():
             user_personality = supabase.table("personality").insert({
                 "user_id": user_id,
                 "personality": response.choices[0].message.content
+            }).execute()
+
+        return jsonify({
+            "reply": response.choices[0].message.content
+        })
+
+    except Exception as e:
+        return jsonify({
+            "reply": f"Error: {str(e)}"
+        })
+
+@app.route('/advice', methods=["POST"])
+def advice():
+    data = request.json
+    user_id = data.get("id","")
+    name = data.get("name", "")
+    entries = data.get("entries", "")
+    new_report = data.get("new_report", "")
+
+    system_prompt = f"""
+                You are Reflect Companion, a helpful AI Assistant built by Joel Mendonca to help users solve their problems.
+                The user's name is {name}.
+                You must refer the {name}'s diary to understand their personality.
+                The diary is in the JSON format, in order for you to know the date and time of entry too.
+
+                Diary: {entries}
+                """
+
+    try:
+        user = supabase.table("advice").select("*").eq("user_id", user_id).execute()
+        if user.data != [] and new_report == "false":
+            return jsonify({
+                "reply": user.data[0]["advice"]
+            })
+
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-20b",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": "Give me some advice based on my diary entries. Maximum 300 words. Try to include only 1-2 diary writing advice, with a total of 5-6 advices"}
+            ]
+        )
+
+        if new_report == "true":
+            user_advice = supabase.table("advice").update({
+                "advice": response.choices[0].message.content
+            }).eq("user_id", user_id).execute()
+        elif new_report == "false":
+            user_advice = supabase.table("advice").insert({
+                "user_id": user_id,
+                "advice": response.choices[0].message.content
             }).execute()
 
         return jsonify({
@@ -270,20 +464,23 @@ def insert_diary_entry():
 
 @app.route('/fetch-diary-entry', methods=["POST"])
 def fetch_diary_entry():
-    token = request.headers.get("session-token")
-    
-    user_auth = supabase.table("Users").select("*").eq("session_token", token).execute()
 
-    if len(user_auth.data) == 0:
+    user = get_user_from_session()
+
+    if user is None:
         return jsonify(error="unauthorized"), 401
 
-    user_auth = user_auth.data[0]
-
-    user = supabase.table("diary_entries").select("*").eq("user_id", user_auth["id"]).execute()
+    diary = (
+        supabase
+        .table("diary_entries")
+        .select("*")
+        .eq("user_id", user["id"])
+        .execute()
+    )
 
     return jsonify(
         success=True,
-        data=user.data
+        data=diary.data
     )
 
 @app.route('/delete-diary-entry', methods=["POST"])
@@ -324,9 +521,7 @@ def check_user_login():
     if user["password"] != password:
         return jsonify(success=False)
 
-    token = secrets.token_hex(32)
-
-    supabase.table("Users").update({"session_token": token}).eq("id", user["id"]).execute()
+    token = create_session(user["id"])
 
     return jsonify(
         success=True,
@@ -337,20 +532,21 @@ def check_user_login():
 def logout():
     token = request.headers.get("session-token")
 
-    supabase.table("Users").update({"session_token": None}).eq("session_token", token).execute()
+    if not token:
+        return jsonify(success=True)
+
+    supabase.table("session_tokens").delete().eq(
+        "session_token", token
+    ).execute()
 
     return jsonify(success=True)
 
 @app.route('/fetch-user-details')
 def fetch_user_details():
-    token = request.headers.get("session-token")
+    user = get_user_from_session()
 
-    user = supabase.table("Users").select("*").eq("session_token", token).execute()
-
-    if len(user.data) == 0:
+    if user is None:
         return jsonify(error="unauthorized"), 401
-
-    user = user.data[0]
 
     return jsonify(
         id=user["id"],
