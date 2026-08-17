@@ -17,6 +17,8 @@ async function store_user_details() {
     return data;
 }
 
+const user_details = {};
+
 // Initialize Page
 async function initialize() {
     if (localStorage.getItem("session_token") == null) {
