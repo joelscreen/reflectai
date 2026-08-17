@@ -17,7 +17,7 @@ async function store_user_details() {
     return data;
 }
 
-const user_details = {};
+var user_details = {};
 
 // Initialize Page
 async function initialize() {
@@ -26,7 +26,7 @@ async function initialize() {
         return;
     }
 
-    const user_details = await store_user_details();
+    user_details = await store_user_details();
 
     if (!user_details) {
         localStorage.clear();
@@ -121,7 +121,8 @@ async function delete_entry(id) {
             "session-token": localStorage.getItem("session_token")
         },
         body: JSON.stringify({
-            id: id
+            id: id,
+            name: user_details.name
         })
     });
 
