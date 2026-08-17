@@ -485,23 +485,27 @@ def fetch_diary_entry():
 
 @app.route('/delete-diary-entry', methods=["POST"])
 def delete_diary_entry():
-    token = request.headers.get("session-token")
 
-    user = supabase.table("Users").select("*").eq("session_token", token).execute()
+    user = get_user_from_session()
 
-    if len(user.data) == 0:
+    if user is None:
         return jsonify(error="unauthorized"), 401
 
-    user = user.data[0]
-
     data = request.get_json()
-    id = data["id"]
+    entry_id = data["id"]
 
-    user = supabase.table("diary_entries").delete().eq("id", data["id"]).execute()
+    deleted = (
+        supabase
+        .table("diary_entries")
+        .delete()
+        .eq("id", entry_id)
+        .eq("user_id", user["id"])
+        .execute()
+    )
 
     return jsonify(
         success=True,
-        data=user.data
+        data=deleted.data
     )
 
 @app.route('/check-user-login', methods=["POST"])
